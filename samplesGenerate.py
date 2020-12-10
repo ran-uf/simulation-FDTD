@@ -4,12 +4,9 @@ import matplotlib.image as mp
 from PIL import Image
 from PIL import ImageFilter
 from skimage import filters
-
+import json
 
 SAMPLERATE = 50
-BOX = [32, 32, 24]
-
-pos = [16 - 0.5, 16 - 0.5, 8]
 
 
 def index(x, y):
@@ -29,10 +26,11 @@ def save_obj(vertices, indices, dir):
 
 
 # x,y plane, z height
-def samplesGenerate(dir, type=0):
+def samplesGenerate(dir, BOX, type=0):
     vertices = []
     indices = []
     mertials = []
+    pos = [BOX[0] / 2 - 0.5, BOX[1] / 2 - 0.5, 10]
     img = None
     s = - 4
     if type == 0:
@@ -41,7 +39,7 @@ def samplesGenerate(dir, type=0):
         zs = []
         for i in range(SAMPLERATE):
             for j in range(SAMPLERATE):
-                zs.append((0.45 * numpy.sin((i + j) / 24)) ** 2 + 0.05)
+                zs.append((0.45 * numpy.sin(j / 10 * 3.14)) ** 2 + 0.05)
         '''''''''''''''''''''random'''''''''''''''''''''
         # zs = numpy.random.random(SAMPLERATE ** 2) * 0.45 + 0.05
         img = numpy.reshape(zs, [SAMPLERATE, SAMPLERATE])
@@ -141,7 +139,8 @@ def samplesGenerate(dir, type=0):
 
 
 if __name__ == "__main__":
-    vertices, indices, mertials = samplesGenerate()
+
+    '''
     with open('sample.obj', "w") as m:
         m.writelines("g\n")
         for v in range(len(vertices)):
@@ -151,7 +150,13 @@ if __name__ == "__main__":
         m.writelines("\n")
         m.writelines("\n")
         m.close()
-
+    '''
+    vertices, indices, mertials = samplesGenerate('', [30, 30, 20])
+    vertices = numpy.array(vertices).reshape(-1).tolist()
+    indices = numpy.array(indices).reshape(-1).tolist()
+    js = {"vertices": vertices, "indices": indices, "layers_of_triangles": mertials, "layer_names": ['box', 'sample']}
+    with open("30_30_20.json", 'w') as file_obj:
+        json.dump(js, file_obj)
     print("done")
 
 

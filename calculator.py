@@ -2,6 +2,8 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
+plot = False
+
 
 def load_npy(file_dir):
     files = os.listdir(file_dir)
@@ -18,9 +20,12 @@ def load_npy(file_dir):
     return data
 
 
-def diffusion_calculator(sample, no_sample, ref):
+def diffusion_calculator(sample, no_sample, ref, mask=None):
     s = sample - no_sample
     r = ref - no_sample
+    if mask:
+        s[:, :, mask:] = 0
+        r[:, :, mask:] = 0
     s_fft = np.zeros((s.shape[0], s.shape[1], s.shape[2] // 2 + 1))
     r_fft = np.zeros((r.shape[0], r.shape[1], r.shape[2] // 2 + 1))
     for i in range(s.shape[0]):
@@ -46,23 +51,100 @@ def diffusion_calculator(sample, no_sample, ref):
 
     coefficient_s_sum = np.sum(coefficient_s, axis=1)
     coefficient_r_sum = np.sum(coefficient_r, axis=1)
-    coefficients_s = (coefficient_s_sum ** 2 - coefficient_s_2) / ((s.shape[1] - 1) * coefficient_s_2)
-    coefficients_r = (coefficient_r_sum ** 2 - coefficient_r_2) / ((r.shape[1] - 1) * coefficient_r_2)
+    coefficients_s = np.divide(coefficient_s_sum ** 2 - coefficient_s_2, (s.shape[1] - 1) * coefficient_s_2,
+                               out=np.zeros_like(coefficient_s_2), where=coefficient_s_2 != 0)
+    coefficients_r = np.divide(coefficient_r_sum ** 2 - coefficient_r_2, (r.shape[1] - 1) * coefficient_r_2,
+                               out=np.zeros_like(coefficient_r_2), where=coefficient_r_2 != 0)
+    # coefficients_s = (coefficient_s_sum ** 2 - coefficient_s_2) / ((s.shape[1] - 1) * coefficient_s_2 + 1e-30)
+    # coefficients_r = (coefficient_r_sum ** 2 - coefficient_r_2) / ((r.shape[1] - 1) * coefficient_r_2 + 1e-30)
     coefficients = (coefficients_s - coefficients_r) / (1 - coefficients_r)
     coefficient = np.mean(coefficients, axis=0)
+
+    if plot:
+        # plt.figure()
+        # plt.plot(sample[0, 0, :], label='sample')
+        # plt.plot(ref[0, 0, :], label='ref')
+        # plt.plot(no_sample[0, 0, :], label='no_sample')
+        # plt.legend()
+        # plt.show()
+        plt.figure()
+        plt.plot(sample[-1, -1, :], label='sample_center')
+        plt.plot(ref[-1, -1, :], label='ref_center')
+        plt.plot(no_sample[-1, -1, :], label='no_sample_center')
+        plt.legend()
+        plt.show()
+        plt.figure()
+        plt.plot(s[-1, -1, :], label='s')
+        plt.plot(r[-1, -1, :], label='r')
+        plt.legend()
+        plt.show()
+        plt.figure()
+        plt.plot(s_fft[-1, -1, :], label='s_fft')
+        plt.plot(r_fft[-1, -1, :], label='r_fft')
+        plt.legend()
+        plt.show()
+
     return coefficient
 
 
 if __name__ == "__main__":
-    sample = load_npy('result/40_40_30/sin-1')
+    '''
+    sample = load_npy('result1/40_40_30/sample')
+    no_sample = load_npy('result1/40_40_30/no_sample')
+    ref = load_npy('result1/40_40_30/ref')
+    c = []
+    for mask in [510, 550, 720]:
+        plt.plot(diffusion_calculator(sample, no_sample, ref, mask), label=str(mask))
+    plt.legend()
+    plt.show()
+    '''
+    mask = 550  # int((np.sqrt(25 + (30 - 10) ** 2) - 5) * 10000 / 340)
+    sample = load_npy('result/40_40_30/sample')
     no_sample = load_npy('result/40_40_30/no_sample')
     ref = load_npy('result/40_40_30/ref')
-    coefficient_1 = diffusion_calculator(sample, no_sample, ref)
-    coefficient_2 = diffusion_calculator(sample[:, :, 0:5623], no_sample[:, :, 0:5623], ref[:, :, 0:5623])
-    print(coefficient_1 - coefficient_2)
-    plt.plot(coefficient_1)
-    plt.plot(coefficient_2)
+    # mask = int((np.sqrt(25 + (40 - 10) ** 2) - 5) * 10000 / 350)
+    coefficient_1 = diffusion_calculator(sample, no_sample, ref, mask)
+    plt.plot(coefficient_1, label='40')
+    
+    sample = load_npy('result/38_38_30/sample')
+    no_sample = load_npy('result/38_38_30/no_sample')
+    ref = load_npy('result/38_38_30/ref')
+    # mask = int((np.sqrt(25 + (38 - 10) ** 2) - 5) * 10000 / 340)
+    coefficient_2 = diffusion_calculator(sample, no_sample, ref, mask)
+    plt.plot(coefficient_2, label='38')
+
+    sample = load_npy('result/36_36_30/sample')
+    no_sample = load_npy('result/36_36_30/no_sample')
+    ref = load_npy('result/36_36_30/ref')
+    # mask = int((np.sqrt(25 + (36 - 10) ** 2) - 5) * 10000 / 340)
+    coefficient_3 = diffusion_calculator(sample, no_sample, ref, mask)
+    plt.plot(coefficient_3, label='36')
+
+    sample = load_npy('result/34_34_30/sample')
+    no_sample = load_npy('result/34_34_30/no_sample')
+    ref = load_npy('result/34_34_30/ref')
+    # mask = int((np.sqrt(25 + (34 - 10) ** 2) - 5) * 10000 / 340)
+    coefficient_4 = diffusion_calculator(sample, no_sample, ref, mask)
+    plt.plot(coefficient_4, label='34')
+
+    sample = load_npy('result/32_32_30/sample')
+    no_sample = load_npy('result/32_32_30/no_sample')
+    ref = load_npy('result/32_32_30/ref')
+    # mask = int((np.sqrt(25 + (32 - 10) ** 2) - 5) * 10000 / 340)
+    coefficient_5 = diffusion_calculator(sample, no_sample, ref, mask)
+    plt.plot(coefficient_5, label='32')
+
+    sample = load_npy('result/30_30_30/sample')
+    no_sample = load_npy('result/30_30_30/no_sample')
+    ref = load_npy('result/30_30_30/ref')
+    # mask = int((np.sqrt(25 + (30 - 10) ** 2) - 5) * 10000 / 340)
+    coefficient_6 = diffusion_calculator(sample, no_sample, ref, mask)
+    plt.plot(coefficient_6, label='30')
+
+    plt.legend()
     plt.show()
+
+    # print(coefficient_1 - coefficient_2)
     '''
     filename_fmt = "40_20_25_%s_%s_deltaLowpass.txt"
     GEO_TYPE = ["3cylindars", "nosample", "3refcylindars"]

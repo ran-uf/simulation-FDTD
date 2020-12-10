@@ -7,6 +7,7 @@ Created on Thu Aug  7 10:20:05 2014
 """
 import os
 import numpy as np
+import sys
 import matplotlib.pyplot as plt
 import math
 import time
@@ -21,16 +22,26 @@ import libPyFDTD as pf
 ###############################################################################
 # Assign simulation parameters
 ###############################################################################
-outputfile_name = "temp.txt"
+
+S_TYPE = int(sys.argv[1])
+BOX = [int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4])]
+
 # dir = "./result/" + time.strftime("%Y-%m-%d-%H%M%S", time.localtime())
-dir = "./result/32_32_24"
-# os.mkdir(dir)
-dir = dir + "/no_sample"
+
+dir = "./result1/new_%d_%d_%d" % (BOX[0], BOX[1], BOX[2])
+if not os.path.isdir(dir):
+	os.mkdir(dir)
+if S_TYPE == 0:
+	dir = dir + "/sample"
+elif S_TYPE == 1:
+	dir = dir + "/ref"
+elif S_TYPE == 2:
+	dir = dir + "/no_sample"
 os.mkdir(dir)
 dir = dir + "/"
 update_type = 0  # 0: SRL forward, 1: SRL sliced, 2: SRL centred
-num_steps = 5623
-fs = 14000  # 56230
+num_steps = 1000
+fs = 10000  # 56230
 double_precision = False
 num_partition = 1
 
@@ -51,18 +62,18 @@ srcs = []
 r = 10
 for a in angle_a:
 	for b in angle_b:
-		srcs.append([16 + r * math.cos(b) * math.sin(a), 16 + r * math.cos(b) * math.cos(a), 8 + r * math.sin(b)])
-srcs.append([16, 16, 18])
+		srcs.append([BOX[0] / 2 + r * math.cos(b) * math.sin(a), BOX[1] / 2 + r * math.cos(b) * math.cos(a), 10 + r * math.sin(b)])
+srcs.append([BOX[0] / 2, BOX[1] / 2, 10 + r])
 
 rec = []
 rec_r = 5
 
 for i in range(36):
 	for j in range(36):
-		rec.append([16 + rec_r * math.cos(math.pi / 72 * j) * math.cos(math.pi / 18 * i), 16 + rec_r * math.cos(math.pi / 72 * j) * math.sin(math.pi / 18 * i), 8 + rec_r * math.sin(math.pi / 72 * j)])
-rec.append([16, 16, 13])
+		rec.append([BOX[0] / 2 + rec_r * math.cos(math.pi / 72 * j) * math.cos(math.pi / 18 * i), BOX[1] / 2 + rec_r * math.cos(math.pi / 72 * j) * math.sin(math.pi / 18 * i), 10 + rec_r * math.sin(math.pi / 72 * j)])
+rec.append([BOX[0] / 2, BOX[1] / 2, 10 + rec_r])
 
-vertices, indices, mertials = samplesGenerate(dir, type=2)
+vertices, indices, mertials = samplesGenerate(dir, BOX, type=S_TYPE)
 vertices = np.array(vertices)
 indices = np.array(indices)
 layer_list = mertials
@@ -91,8 +102,8 @@ R_glob1 = 0.00
 R_glob2 = 0.99
 materials = np.ones((num_triangles, num_coef))  # *reflection2Admittance(R_glob)
 
-materials[layers['box'], :] = reflection2Admittance(R_glob2)
-materials[layers['sample'], :] = reflection2Admittance(R_glob1)
+materials[layers['box'], :] = reflection2Admittance(R_glob1)
+materials[layers['sample'], :] = reflection2Admittance(R_glob2)
 
 slice_n = [12, 14]
 step = [400, 500]
