@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug  7 10:20:05 2014
+Modified on Thu Aug  7 10:20:05 2020
 
-@author: Jukka Saarelma
+@author: Jukka Saarelma, Ran Dou
 
 """
 import os
