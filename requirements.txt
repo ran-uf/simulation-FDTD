@@ -1,0 +1,6 @@
+CUDA Version--11.6.2
+numpy
+skimage
+pillow
+matplotlib
+scipy
