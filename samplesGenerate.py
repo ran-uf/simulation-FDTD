@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct 17 9:10:09 2020
+
+@author: Jukka Saarelma, Ran Dou
+
+"""
 import numpy
 import matplotlib.pyplot as plt
 import matplotlib.image as mp
