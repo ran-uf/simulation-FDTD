@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Aug  7 10:20:05 2014
+
+@author: Jukka Saarelma
+
+"""
 import numpy as np
 import os
 import matplotlib.pyplot as plt
